@@ -5,22 +5,11 @@ pacman::p_load('tidyverse','lubridate','copula',
                'VGAM', 'fExtremes', 'dplyr', 'ggplot2')
 
 
-tab_exp <- function (arr, decimals=4) {
-  data.frame(
-  "Media" = mean(arr),
-  "Variancia" = var(arr),
-  "Desvio.Padrao" = sqrt(var(arr)),
-  "Minimo" = range(arr)[1],
-  "Maximo" = range(arr)[2],
-  "Prim.Quantil" = quantile(arr, 0.25),
-  "Seg.Quantil" = quantile(arr, 0.50),
-  "Ter.Quantil" = quantile(arr, 0.75)) %>%
-  map_df(round, decimals)
-}
+ano_inicio <- as.Date("2017-06-30", format = "%Y-%m-%d")
+ano_fim <-  as.Date("2021-06-30", format = "%Y-%m-%d")
+### Carrega as funções customizadas
+source("Trabalho-1/Custom_Functions.R")
 
-
-ano_inicio <- as.Date("2017-07-01", format = "%Y-%m-%d")
-ano_fim <-  as.Date("2021-07-01", format = "%Y-%m-%d")
 
 SAMSUNG <- read_csv("Trabalho-1/SMSN.IL.csv") %>%
   summarise(Date = as.Date(Date, format = "%Y-%m-%d"), High = as.numeric(High)) %>%
@@ -38,7 +27,7 @@ APPLE <- APPLE[is.finite(APPLE$Retorno), ]
 ## Padronizacao do tamanho do banco
 SAMSUNG <- SAMSUNG[-1:-5,]
 
-## Analise exploratoria
+### Analise exploratoria
 head(SAMSUNG, 5) %>%
   kbl(caption="Alta e retorno das ações da Samsung.", booktabs = T) %>%
   kable_styling(latex_options = c("striped", "hold_position"),
@@ -50,19 +39,10 @@ kbl(caption = "Alta e retorno das ações da Apple.", booktabs = T) %>%
                 full_width = F)
 
 
+Serie(data = SAMSUNG, col_x = "Date", col_y = "High")
+Serie(data = APPLE, col_x = "Date", col_y = "High")
 
-ggplot(SAMSUNG) +
-  geom_line(aes(x = Date, y = High)) +
-  xlab("Tempo") + ylab("Maximo valor diario alcançado") +
-  theme_bw()
-
-ggplot(APPLE) +
-  geom_line(aes(x = Date, y = High)) +
-  xlab("Tempo") + ylab("Maximo valor diario alcançado") +
-  theme_bw()
-
-
-
+## Exploratoria do log-retorno
 SSG_ret <- SAMSUNG$Retorno
 APL_ret <- APPLE$Retorno
 
@@ -78,6 +58,9 @@ APL_exp %>%
   kable_styling(latex_options = c("striped", "hold_position"),
                 full_width = F)
 
+
+Serie(SAMSUNG, col_x = "Date", col_y = "Retorno")
+Serie(APPLE, col_x = "Date", col_y = "Retorno")
 
 
 
