@@ -54,7 +54,7 @@ Hist_Fit <- function (data, values, fits=c(), fits_param=c()) {
         "X" = x,
         "Y" = stblfit <- dstable(x, alpha = fits_param['alpha'], beta = fits_param['beta'],
                                  gamma = fits_param['gamma'], delta = fits_param['delta']),
-        "Ajuste" = 'Alfa-Estável'
+        "Ajuste" = 'Alfa-Estavel'
       )
       fits_df <- rbind(fits_df, stfit_df)
     }

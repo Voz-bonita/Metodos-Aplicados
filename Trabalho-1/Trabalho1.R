@@ -70,27 +70,21 @@ Hist_Fit(data = SAMSUNG, values = 'Retorno')
 ssg_stF1 <- stableFit(SSG_ret, "q", doplot = TRUE)
 ssg_stF2 <- stableFit(SSG_ret, "mle", doplot = TRUE)
 
-alpha_params <- c(ssg_stF1@fit[["estimate"]][["alpha"]], st11@fit[["estimate"]][["beta"]],
-                  ssg_stF1@fit[["estimate"]][["gamma"]], st11@fit[["estimate"]][["delta"]])
+alpha_params <- c(ssg_stF1@fit[["estimate"]][["alpha"]], ssg_stF1@fit[["estimate"]][["beta"]],
+                  ssg_stF1@fit[["estimate"]][["gamma"]], ssg_stF1@fit[["estimate"]][["delta"]])
 names(alpha_params) <- names(ssg_stF1@fit[["estimate"]])
 
 Hist_Fit(data = SAMSUNG, values = 'Retorno',
          fits = c('gaussian', 'stable'), fits_param = alpha_params)
 
-#var historico
-PerformanceAnalytics::VaR(SSG_ret, p=0.95, method="historical")
-PerformanceAnalytics::VaR(SSG_ret, p=0.99, method="historical")
-PerformanceAnalytics::VaR(SSG_ret, p=0.999, method="historical")
-# normal
-PerformanceAnalytics::VaR(SSG_ret, p=.95, method="gaussian")
-PerformanceAnalytics::VaR(SSG_ret, p=.99, method="gaussian")
-PerformanceAnalytics::VaR(SSG_ret, p=.999, method="gaussian")
-##VaR alpha estavel
-qstable(0.95,alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1, pm = 0,)
-qstable(0.99,alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1, pm = 0,)
-qstable(0.999,alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1, pm = 0,)
+### VaR
+p <- c(0.95, 0.99, 0.999)
+## Historico, Normal, Alfa-Estavel (respectivamente)
+map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "historical"))
+map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "gaussian"))
+map_dbl(p, qstable, alpha=alpha_params['alpha'], beta=alpha_params['beta'],
+                    gamma=alpha_params['gamma'], delta=alpha_params['delta'])
 
-rm(alpha1,beta1,gamma1,delta1)
 
 N <- length(SAMSUNG$High)
 result1 <- data.frame()
