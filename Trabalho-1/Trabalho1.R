@@ -65,45 +65,26 @@ Serie(APPLE, col_x = "Date", col_y = "Retorno")
 
 
 #### SAMSUNG ####
-ret1 <- SAMSUNG$retorno
-plot(ret1,type="l")
+Hist_Fit(data = SAMSUNG, values = 'Retorno')
 
-hist(ret1, n = 50, probability = TRUE, border = "white",
-     col = "steelblue", main="", ylim=c(0,40), xlab="log retorno diário Samsung",
-     ylab="Densidade")
+ssg_stF1 <- stableFit(SSG_ret, "q", doplot = TRUE)
+ssg_stF2 <- stableFit(SSG_ret, "mle", doplot = TRUE)
 
-st11 <- stableFit(ret1, "q",doplot = TRUE)
-st12 <- stableFit(ret1, "mle",doplot = TRUE)
+alpha_params <- c(ssg_stF1@fit[["estimate"]][["alpha"]], st11@fit[["estimate"]][["beta"]],
+                  ssg_stF1@fit[["estimate"]][["gamma"]], st11@fit[["estimate"]][["delta"]])
+names(alpha_params) <- names(ssg_stF1@fit[["estimate"]])
 
-alpha1 <- st11@fit[["estimate"]][["alpha"]]
-beta1 <- st11@fit[["estimate"]][["beta"]]
-gamma1 <- st11@fit[["estimate"]][["gamma"]]
-delta1 <- st11@fit[["estimate"]][["delta"]]
-
-rm(st11,st12)
-
-
-hist(ret1, n = 50, probability = TRUE, border = "white",
-     col = "steelblue", main="", ylim=c(0,40),
-     xlab="log retorno diário Samsung", ylab="Densidade")
-
-lines(seq(min(ret1,na.rm=T),max(ret1,na.rm=T),length=1000),
-      dnorm(seq(min(ret1, na.rm=T), max(ret1, na.rm=T), length=1000),
-            mean(ret1,na.rm=T),
-            sd(ret1,na.rm=T)),
-      lwd=2, col = "blue")
-
-curve(dstable(x, alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1),
-      -1, 1, col = "red",add=TRUE)
+Hist_Fit(data = SAMSUNG, values = 'Retorno',
+         fits = c('gaussian', 'stable'), fits_param = alpha_params)
 
 #var historico
-PerformanceAnalytics::VaR(ret1, p=0.95, method="historical")
-PerformanceAnalytics::VaR(ret1, p=0.99, method="historical")
-PerformanceAnalytics::VaR(ret1, p=0.999, method="historical")
+PerformanceAnalytics::VaR(SSG_ret, p=0.95, method="historical")
+PerformanceAnalytics::VaR(SSG_ret, p=0.99, method="historical")
+PerformanceAnalytics::VaR(SSG_ret, p=0.999, method="historical")
 # normal
-PerformanceAnalytics::VaR(ret1, p=.95, method="gaussian")
-PerformanceAnalytics::VaR(ret1, p=.99, method="gaussian")
-PerformanceAnalytics::VaR(ret1, p=.999, method="gaussian")
+PerformanceAnalytics::VaR(SSG_ret, p=.95, method="gaussian")
+PerformanceAnalytics::VaR(SSG_ret, p=.99, method="gaussian")
+PerformanceAnalytics::VaR(SSG_ret, p=.999, method="gaussian")
 ##VaR alpha estavel
 qstable(0.95,alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1, pm = 0,)
 qstable(0.99,alpha = alpha1, beta = beta1, gamma = gamma1, delta = delta1, pm = 0,)
@@ -118,7 +99,7 @@ for (k in 1:60) {
   tau1<-floor(N/n1)
   m1<-numeric(tau1); j1<-1
   for (i in 1:tau1){
-    m1[i]<-max(ret1[j1:(j1+n1-1)])
+    m1[i]<-max(SSG_ret[j1:(j1+n1-1)])
     j1<-j1+n1
   }
   m1 <- m1[-1]
@@ -144,7 +125,7 @@ tau1 <- floor(N/n1)
 m1 <- matrix(0,tau1,1)
 j1 <- 1
 for (i in 1:tau1){
-  m1[i]<-max(ret1[j1:(j1+n1-1)])
+  m1[i]<-max(SSG_ret[j1:(j1+n1-1)])
   j1<-j1+n1}
 head(m1)
 
@@ -152,7 +133,7 @@ hist(m1, n=1007, prob=T,ylim=c(0,70))
 lines(density(m1),lwd=2, col="blue")
 
 
-rm(ret1,result1,i,j1,n1)
+rm(SSG_ret,result1,i,j1,n1)
 
 par(mfrow=c(1,1))
 plot(m1, type="l")
