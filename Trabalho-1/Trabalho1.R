@@ -85,68 +85,69 @@ map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "gaussian"))
 map_dbl(p, qstable, alpha=alpha_params['alpha'], beta=alpha_params['beta'],
                     gamma=alpha_params['gamma'], delta=alpha_params['delta'])
 
+Bmax <- Bloco_maximo(data = SAMSUNG, values = "Retorno")
+SSG_n <- Bmax$n
+SSG_tab <- Bmax$Teste %>%
+  summarise(Tamanho = Tamanho,
+            P.valor = round(P.valor, 2)) %>%
+  as_tibble()
+SSG_ts <- Bmax$Serie
 
-N <- length(SAMSUNG$High)
-result1 <- data.frame()
-for (k in 1:60) {
-  n1<-k
-  tau1<-floor(N/n1)
-  m1<-numeric(tau1); j1<-1
-  for (i in 1:tau1){
-    m1[i]<-max(SSG_ret[j1:(j1+n1-1)])
-    j1<-j1+n1
-  }
-  m1 <- m1[-1]
-  teste1 <- Box.test(m1, lag = 1, type = c("Box-Pierce", "Ljung-Box"), fitdf = 0)
-  teste1$indice <- k
-  teste1 <- c(teste1$indice,teste1$p.value) #
-  if(teste1[2]>0.05){
-    result1 <- rbind(result1, teste1)}
-}
-result1 <- tibble(result1)
-names(result1) <- c("Tam","Pval")
-result1 <- rbind(result1, teste1)
-rm(i,j1,k,m1,n1,tau1,teste1)
-
-################## Bloco Máximo ###########
-if (TRUE %in% (result1$Tam < 0.05)) {
-  n1 <- max(which((result1$Pval < 0.1) == TRUE))
-} else {
-  n1 <- 1
-}
-
-tau1 <- floor(N/n1)
-m1 <- matrix(0,tau1,1)
-j1 <- 1
-for (i in 1:tau1){
-  m1[i]<-max(SSG_ret[j1:(j1+n1-1)])
-  j1<-j1+n1}
-head(m1)
-
-hist(m1, n=1007, prob=T,ylim=c(0,70))
-lines(density(m1),lwd=2, col="blue")
+Bmax <- Bloco_maximo(data = APPLE, values = "Retorno")
+APL_n <- Bmax$n
+APL_tab <- Bmax$Teste %>%
+  summarise(Tamanho = Tamanho,
+            P.valor = round(P.valor, 2)) %>%
+  as_tibble()
+APL_ts <- Bmax$Serie
 
 
-rm(SSG_ret,result1,i,j1,n1)
+kbl(SSG_tab[(SSG_n-2):(SSG_n+3),], bookSSG_tabs = T) %>%
+   kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
-par(mfrow=c(1,1))
-plot(m1, type="l")
+kbl(APL_tab[(APL_n-2):(APL_n+3),], bookAPL_tabs = T) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
+
+
+Hist_Fit(data = SSG_ts, values = "Retorno", fits = "self", bins = 20)
+Serie(data = SSG_ts, col_x = "Datas", col_y = "Retorno")
+
+Hist_Fit(data = APL_ts, values = "Retorno", fits = "self", bins = 20)
+Serie(data = APL_ts, col_x = "Datas", col_y = "Retorno")
+
 
 ## Qq plot
-p1 <- c((1:tau1)/(tau1+1))
-ginv1<- -log(-log(p1))
-qqplot(m1,ginv1,xlab="Quantil empírico",ylab="Quantil da Gumbel",main="qqplot")
+SSG_q <- c((1:SSG_n)/(SSG_n+1))
+SSG_ginv <- -log(-log(SSG_q))
+qqplot(SSG_ts$Retorno, SSG_ginv, xlab="Quantil empírico",ylab="Quantil da Gumbel",main="")
 grid()
 
-rm(tau1,ginv1,p1)
+APL_q <- c((1:APL_n)/(APL_n+1))
+APL_ginv <- -log(-log(APL_q))
+qqplot(APL_ts$Retorno, APL_ginv, xlab="Quantil empírico",ylab="Quantil da Gumbel",main="")
+grid()
+
 ## R MLE - GEV
-fitmv1 <- gevFit(m1, type ="mle")
-fitmv1
+
+SSG_gevfit1 <- gevFit(SSG_ts$Retorno, type ="mle")
+par(mfrow = c(2, 2))
+summary(SSG_gevfit1)
+SSG_gevfit2 <- gevFit(SSG_ts$Retorno, type ="pwm")
+par(mfrow = c(2, 2))
+summary(SSG_gevfit1)
+
+APL_gevfit1 <- gevFit(APL_ts$Retorno, type ="mle")
+par(mfrow = c(2, 2))
+summary(APL_gevfit1)
+APL_gevfit2 <- gevFit(APL_ts$Retorno, type ="pwm")
+par(mfrow = c(2, 2))
+summary(APL_gevfit2)
+
 par(mfrow = c(2, 2))
 summary(fitmv1)
 ## R PWM - GEV
-fitpwm1 = gevFit(m1, type ="pwm")
-fitpwm1
+
+
 par(mfrow = c(2, 2))
 summary(fitpwm1)
 
