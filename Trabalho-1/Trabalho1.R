@@ -75,7 +75,7 @@ alpha_params <- c(ssg_stF1@fit[["estimate"]][["alpha"]], ssg_stF1@fit[["estimate
 names(alpha_params) <- names(ssg_stF1@fit[["estimate"]])
 
 Hist_Fit(data = SAMSUNG, values = 'Retorno',
-         fits = c('gaussian', 'stable'), fits_param = alpha_params)
+         fits = c('gaussian', 'stable'), fits_param = list('stable' = alpha_params))
 
 ### VaR
 p <- c(0.95, 0.99, 0.999)
@@ -128,52 +128,46 @@ qqplot(APL_ts$Retorno, APL_ginv, xlab="Quantil empírico",ylab="Quantil da Gumbel
 grid()
 
 ## R MLE - GEV
+par(mfrow = c(2, 2))
 
 SSG_gevfit1 <- gevFit(SSG_ts$Retorno, type ="mle")
-par(mfrow = c(2, 2))
 summary(SSG_gevfit1)
+
 SSG_gevfit2 <- gevFit(SSG_ts$Retorno, type ="pwm")
-par(mfrow = c(2, 2))
 summary(SSG_gevfit1)
+
 
 APL_gevfit1 <- gevFit(APL_ts$Retorno, type ="mle")
-par(mfrow = c(2, 2))
 summary(APL_gevfit1)
+
 APL_gevfit2 <- gevFit(APL_ts$Retorno, type ="pwm")
-par(mfrow = c(2, 2))
 summary(APL_gevfit2)
 
-par(mfrow = c(2, 2))
-summary(fitmv1)
-## R PWM - GEV
+
+SSG_gevmle <- SSG_gevfit1@fit[['par.ests']]
+SSG_gevpwm <- SSG_gevfit2@fit[['par.ests']]
+
+APL_gevmle <- APL_gevfit1@fit[['par.ests']]
+APL_gevpwm <- APL_gevfit2@fit[['par.ests']]
+
+Hist_Fit(data = SSG_ts, values = 'Retorno', bins = 15,
+          fits = c("gevmle", "gevpwm"), fits_param = list("gevmle" = SSG_gevmle,
+                                                          "gevpwm" = SSG_gevpwm))
+
+Hist_Fit(data = APL_ts, values = 'Retorno', bins = 15,
+         fits = c("gevmle", "gevpwm"), fits_param = list("gevmle" = APL_gevmle,
+                                                         "gevpwm" = APL_gevpwm))
 
 
-par(mfrow = c(2, 2))
-summary(fitpwm1)
 
-xis11 <- fitmv1@fit[["par.ests"]][["xi"]]
-mus11 <- fitmv1@fit[["par.ests"]][["mu"]]
-betas11 <- fitmv1@fit[["par.ests"]][["beta"]]
-xis12 <- fitpwm1@fit[["par.ests"]][["xi"]]
-mus12 <- fitpwm1@fit[["par.ests"]][["mu"]]
-betas12 <- fitpwm1@fit[["par.ests"]][["beta"]]
-
-rm(fitmv1,fitpwm1)
-
-hist(m1,prob=T,ylim=c(0,60),main='',cex.axis=1.5, cex.lab=1.5, cex=1.5, font.axis=2,lwd=2)
-curve(dgev(x, xi = xis11 , mu = mus11, beta = betas11),col='blue', lwd=2, add=TRUE)
-curve(dgev(x, xi = xis12, mu = mus12 , beta = betas12),col='green',lwd=2,add=TRUE)
-legend('topright',legend=c('MLE','PWM'),col=c('blue','green'),lwd=2)
-
-rm(xis11,mus11,betas11,xis12,mus12,betas12)
 par(mfrow=c(1,1))
-fit1 <- fevd(m1,type="GEV")
+fit1 <- fevd(SSG_ts$Retorno,type="GEV")
 fit1 #positive shape estimate but fairly large standard error
 plot(fit1) #The fit looks reasonable
 ci(fit1,type="parameter") #As expected the 95% confidence interval includes negative values
 return.level(fit1,do.ci=T)
 
-rm(m1,fit1)
+
 
 
 

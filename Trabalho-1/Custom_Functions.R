@@ -1,5 +1,5 @@
 ### Arquivo contendo todas as funções customizadas utilizadas no trabalho 1
-pacman::p_load('dplyr', 'purrr', 'ggplot2', 'stringr', 'stabledist')
+pacman::p_load('dplyr', 'purrr', 'ggplot2', 'stringr', 'stabledist', 'fExtremes', 'RColorBrewer')
 
 tab_exp <- function (arr, decimals=4) {
   data.frame(
@@ -45,27 +45,44 @@ Hist_Fit <- function (data, values, fits=c(), fits_param=c(), bins=30) {
   if (length(fits)) {
     x <- seq(min(values), max(values), length.out = 1000)
     fits_df <- data.frame(matrix(ncol = 0, nrow = 0))
-    if ('gaussian' %in% fits) {
-      gfit_df <- data.frame(
-        "X" = x,
-        "Y" = dnorm(x, mean = mean(values), sd = sd(values)),
-        "Ajuste" = 'Normal'
-      )
-      fits_df <- rbind(fits_df, gfit_df)
-    }
-    if ('stable' %in% fits) {
-      stfit_df <- data.frame(
-        "X" = x,
-        "Y" = stblfit <- dstable(x, alpha = fits_param['alpha'], beta = fits_param['beta'],
-                                 gamma = fits_param['gamma'], delta = fits_param['delta']),
-        "Ajuste" = 'Alfa-Estavel'
-      )
-      fits_df <- rbind(fits_df, stfit_df)
-    }
+    labels <- data.frame(
+      "gaussian" = "Normal",
+      "stable" = "Alfa-Estavel",
+      "gev" = "GEV",
+      "gevpwm" = "GEV(PWM)",
+      "gevmle" = "GEV(MLE)"
+    )
+    for (fit in fits) {
+      if (str_detect(fit,'gaussian')) {
+        if (!length(fits_param[[fit]])) {
+          fits_param[[fit]] <- c('mean' = mean(values), 'sd' = sd(values))
+        }
+        y <- map_dbl(x, dnorm, fits_param[[fit]][['mean']], fits_param[[fit]][['sd']])
 
-    colors <- c("green3", "red3")
+      } else if (str_detect(fit,'stable')) {
+        if (!length(fits_param[[fit]])) {
+          fits_param[[fit]] <- c('alpha' = 2, 'beta' = 0.5, 'gamma' = 1, 'delta' = 0)
+        }
+        y <- map_dbl(x, dstable, fits_param[[fit]][['alpha']], fits_param[[fit]][['beta']],
+                     fits_param[[fit]][['gamma']], fits_param[[fit]][['delta']])
+
+      }else if (str_detect(fit,'gev')) {
+        if (!length(fits_param[[fit]])) {
+          fits_param[[fit]] <- c('xi' = 1, 'mu' = 0, 'beta' = 1)
+        }
+        y <- map_dbl(x, fExtremes::dgev, fits_param[[fit]][['xi']],
+                     fits_param[[fit]][['mu']], fits_param[[fit]][['beta']])
+      }
+      fit_df <- data.frame(
+        "X" = x,
+        "Y" = y,
+        "Ajuste" = labels[[fit]]
+      )
+      fits_df <- rbind(fits_df, fit_df)
+    }
+    colors <- brewer.pal(max(3, length(fits)+1), 'Set1')[-2]
     plot <- plot + geom_line(data = fits_df, aes(x=X, y=Y, group=Ajuste, color=Ajuste), size=1.1) +
-      scale_color_manual(values = colors[1:(length(fits))])
+      scale_color_manual(values = colors)
   }
 
   return(plot)
