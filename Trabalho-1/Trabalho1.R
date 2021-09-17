@@ -2,7 +2,7 @@ pacman::p_load('tidyverse','lubridate','copula',
                'fBasics','StableEstim','stabledist',
                'DT','kableExtra','PerformanceAnalytics',
                'extRemes', 'ismev', 'evmix', 'evd', 'extremis',
-               'VGAM', 'fExtremes', 'dplyr', 'ggplot2')
+               'VGAM', 'fExtremes', 'dplyr', 'ggplot2', 'ggpubr')
 
 
 ano_inicio <- as.Date("2017-06-30", format = "%Y-%m-%d")
@@ -91,7 +91,8 @@ SSG_tab <- Bmax$Teste %>%
   summarise(Tamanho = Tamanho,
             P.valor = round(P.valor, 2)) %>%
   as_tibble()
-SSG_ts <- Bmax$Serie
+SSG_ts <- Bmax$Serie %>%
+  dplyr::select(c("Date", "Retorno"))
 
 Bmax <- Bloco_maximo(data = APPLE, values = "Retorno")
 APL_n <- Bmax$n
@@ -99,21 +100,27 @@ APL_tab <- Bmax$Teste %>%
   summarise(Tamanho = Tamanho,
             P.valor = round(P.valor, 2)) %>%
   as_tibble()
-APL_ts <- Bmax$Serie
+APL_ts <- Bmax$Serie %>%
+  dplyr::select(c("Date", "Retorno"))
 
 
-kbl(SSG_tab[(SSG_n-2):(SSG_n+3),], bookSSG_tabs = T) %>%
+kbl(SSG_tab[(SSG_n-2):(SSG_n+3),], booktabs = T,
+    caption = "P-valores do teste de Ljung-Box para diferentes tamanhos de
+     bloco máximo dos retornos das ações da Samsung") %>%
    kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
-kbl(APL_tab[(APL_n-2):(APL_n+3),], bookAPL_tabs = T) %>%
+kbl(APL_tab[(APL_n-2):(APL_n+3),], booktabs = T,
+    caption = "P-valores do teste de Ljung-Box para diferentes tamanhos de
+     bloco máximo dos retornos das ações da Apple") %>%
   kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
+ggarrange(Hist_Fit(data = SSG_ts, values = "Retorno", fits = "self", bins = 20),
+          Serie(data = SSG_ts, col_x = "Date", col_y = "Retorno", 2),
+          nrow = 1, ncol = 2)
 
-Hist_Fit(data = SSG_ts, values = "Retorno", fits = "self", bins = 20)
-Serie(data = SSG_ts, col_x = "Datas", col_y = "Retorno")
-
-Hist_Fit(data = APL_ts, values = "Retorno", fits = "self", bins = 20)
-Serie(data = APL_ts, col_x = "Datas", col_y = "Retorno")
+ggarrange(Hist_Fit(data = APL_ts, values = "Retorno", fits = "self", bins = 20),
+          Serie(data = APL_ts, col_x = "Date", col_y = "Retorno", 2),
+          nrow = 1, ncol = 2)
 
 
 ## Qq plot

@@ -15,11 +15,12 @@ tab_exp <- function (arr, decimals=4) {
 }
 
 
-Serie <- function (data, col_x, col_y) {
+Serie <- function (data, col_x, col_y, dodge=1) {
   plot <- ggplot(data) +
     geom_line(aes(x = as.Date(.data[[col_x]]), y = .data[[col_y]])) +
     xlab("Tempo") + ylab("Maximo valor diario alcançado") +
-    scale_x_date(date_labels = "%b-%Y", breaks = seq(ano_inicio, ano_fim, 365/2)) +
+    scale_x_date(date_labels = "%b-%Y", breaks = seq(ano_inicio, ano_fim, 365/2),
+                 guide = guide_axis(n.dodge = dodge)) +
     theme_bw()
   return(plot)
 }
@@ -89,35 +90,35 @@ Hist_Fit <- function (data, values, fits=c(), fits_param=c(), bins=30) {
 }
 
 
-Bloco_maximo <- function (data, values, x_axis = "Date", conf = 0.05) {
-  section <- function (n, values) {
-    tau <- floor(length(values) / n)
-    maximos <- numeric(tau)
+Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05) {
+  section <- function (n, data, values) {
+    tau <- floor(nrow(data) / n)
+    maximos <- data.frame(matrix(nrow=tau, ncol = length(data)))
     inicio <- 1
     for (i in 1:tau) {
       ## Pega-se o maior valor dado um tamanho de bloco
       ## Exemplo, se n = 3, entao pega-se
       ## as observacoes de 1 a 3 (incluso 3), de 4 a 6 (incluso 6), ...
-      maximos[i] <- max(values[inicio: (inicio + n - 1)])
+
+      maximos[i,] <-  dplyr::filter(data[inicio: (inicio + n - 1),],
+                                     eval(parse(text = values)) == max(data[[values]][inicio: (inicio + n - 1)]))[1,]
       # Atualiza o indice inicial do bloco
       inicio <- inicio + n
     }
+    names(maximos) <- names(data)
     return(maximos)
   }
 
-  values <- data[[values]]
-  datas <- as.character(data[[x_axis]])
-
-
+  data[[x_axis]] <- as.character(data[[x_axis]])
   # Data frame que acumula os testes para cada tamanho de bloco
   ans_tab <- data.frame(matrix(nrow = 0, ncol = 2))
 
   # n trata-se dos tamanhos de bloco
   for (n in 1:60) {
-    maximos <- section(n, values)
+    maximos <- section(n, data = data, values = values)
 
     ## Teste de Ljung-Box para series historicas
-    teste <- Box.test(maximos, lag = 1, type = "Ljung-Box", fitdf = 0)
+    teste <- Box.test(maximos[[values]], lag = 1, type = "Ljung-Box", fitdf = 0)
     teste <- c(n, teste$p.value)
     # Coloca-se o resultado em um dataframe com todos os p-valores
     # para comparacao futura
@@ -135,10 +136,7 @@ Bloco_maximo <- function (data, values, x_axis = "Date", conf = 0.05) {
     message("Nao foi encontrado nenhum p-valor mais\nsignificativo que o nivel de confiança")
   }
 
-  Serie_temp <- data.frame(
-    "Datas" = section(n, datas),
-    "Retorno" = section(n, values)
-  )
+  Serie_temp <- section(n, data = data, values = values)
 
   ans <- list(n, ans_tab, Serie_temp)
 
