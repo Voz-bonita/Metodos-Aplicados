@@ -126,7 +126,7 @@ ggarrange(Hist_Fit(data = APL_ts, values = "Retorno", fits = "self", bins = 20),
 ## Qq plot
 SSG_q <- c((1:SSG_n)/(SSG_n+1))
 SSG_ginv <- -log(-log(SSG_q))
-qqplot(SSG_ts$Retorno, SSG_ginv, xlab="Quantil empírico",ylab="Quantil da Gumbel",main="")
+qqplot(SSG_ts$Retorno, SSG_ginv, xlab="Quantil empírico",ylab="Quantil da Fréchet",main="")
 grid()
 
 APL_q <- c((1:APL_n)/(APL_n+1))
@@ -135,20 +135,14 @@ qqplot(APL_ts$Retorno, APL_ginv, xlab="Quantil empírico",ylab="Quantil da Gumbel
 grid()
 
 ## R MLE - GEV
-par(mfrow = c(2, 2))
+
 
 SSG_gevfit1 <- gevFit(SSG_ts$Retorno, type ="mle")
-summary(SSG_gevfit1)
-
 SSG_gevfit2 <- gevFit(SSG_ts$Retorno, type ="pwm")
-summary(SSG_gevfit1)
 
 
 APL_gevfit1 <- gevFit(APL_ts$Retorno, type ="mle")
-summary(APL_gevfit1)
-
 APL_gevfit2 <- gevFit(APL_ts$Retorno, type ="pwm")
-summary(APL_gevfit2)
 
 
 SSG_gevmle <- SSG_gevfit1@fit[['par.ests']]
@@ -165,139 +159,48 @@ Hist_Fit(data = APL_ts, values = 'Retorno', bins = 15,
          fits = c("gevmle", "gevpwm"), fits_param = list("gevmle" = APL_gevmle,
                                                          "gevpwm" = APL_gevpwm))
 
-
-
-par(mfrow=c(1,1))
-fit1 <- fevd(SSG_ts$Retorno,type="GEV")
-fit1 #positive shape estimate but fairly large standard error
-plot(fit1) #The fit looks reasonable
-ci(fit1,type="parameter") #As expected the 95% confidence interval includes negative values
-return.level(fit1,do.ci=T)
-
-
-
-
-
-
-#### APPLE ####
-
-ret2<-APPLE$retorno
-plot(ret2,type="l")
-
-hist(ret2, n = 50, probability = TRUE, border = "white",
-     col = "steelblue", main="", ylim=c(0,40), xlab="log retorno diário Apple",
-     ylab="Densidade")
-
-st21<-stableFit(ret2, "q",doplot = TRUE)
-st22<-stableFit(ret2, "mle",doplot = TRUE)
-
-alpha2 = st21@fit[["estimate"]][["alpha"]]
-beta2 = st21@fit[["estimate"]][["beta"]]
-gamma2 = st21@fit[["estimate"]][["gamma"]]
-delta2 = st21@fit[["estimate"]][["delta"]]
-
-rm(st21,st22)
-
-hist(ret2,n=50, prob=T,ylim=c(0,40))
-lines(seq(min(ret2,na.rm=T),max(ret2,na.rm=T),length=1000),dnorm(seq(min(ret2,na.rm=T),max(ret2,na.rm=T),
-                                                                     length=1000),mean(ret2,na.rm=T),sd(ret2,na.rm=T)),lwd=2, col = "blue")
-
-curve(dstable(x, alpha = alpha2, beta = beta2, gamma = gamma2, delta = delta2), -1, 1, col = "red",add=TRUE)
-
-#var historico
-PerformanceAnalytics::VaR(ret2, p=0.95, method="historical")
-PerformanceAnalytics::VaR(ret2, p=0.99, method="historical")
-PerformanceAnalytics::VaR(ret2, p=0.999, method="historical")
-# normal
-PerformanceAnalytics::VaR(ret2, p=.95, method="gaussian")
-PerformanceAnalytics::VaR(ret2, p=.99, method="gaussian")
-PerformanceAnalytics::VaR(ret2, p=.999, method="gaussian")
-##VaR alpha estavel
-qstable(0.95,alpha = alpha2, beta = beta2, gamma = gamma2, delta = delta2, pm = 0,)
-qstable(0.99,alpha = alpha2, beta = beta2, gamma = gamma2, delta = delta2, pm = 0,)
-qstable(0.999,alpha = alpha2, beta = beta2, gamma = gamma2, delta = delta2, pm = 0,)
-
-rm(alpha2,beta2,gamma2,delta2)
-
-N2 <-length(APPLE$High)
-result2 <- data.frame()
-for (k in 20:60) {
-  n2<-k
-  tau2<-floor(N2/n2)
-  m2<-numeric(tau2); j2<-1
-  for (i in 1:tau2){
-    m2[i]<-max(ret2[j2:(j2+n2-1)])
-    j2<-j2+n2
-  }
-  m2 <- m2[-1]
-  teste2 <- Box.test(m2, lag = 1, type = c("Box-Pierce", "Ljung-Box"), fitdf = 0)
-  teste2$indice <- k
-  teste2 <- c(teste2$indice,teste2$p.value) #
-  if(teste2[2]>0.05){
-    result2 <- rbind(result2, teste2)}
-}
-result2 <- tibble(result2)
-names(result2) <- c("Tam","Pval")
-result2 <- rbind(result2, teste2)
-rm(i,j2,k,m2,n2,tau2,teste2)
-
-################## Bloco Máximo ###########
-n2<-result2$Tam[result2$Pval == max(result2$Pval)][1]
-tau2<-floor(N2/n2)
-m2<-matrix(0,tau2,1)
-j2<-1
-for (i in 1:tau2){
-  m2[i]<-max(ret2[j2:(j2+n2-1)])
-  j2<-j2+n2}
-head(m2)
-sum(is.na(m2))
-hist(m2,n=tau2, prob=T,ylim=c(0,70))
-lines(density(m2),lwd=2)
-
-
-rm(ret2,N2,result2,i,j2,n2)
-
-par(mfrow=c(1,1))
-plot(m2, type="l")
-
-## Qq plot
-p2<-c((1:tau2)/(tau2+1))
-ginv2<- -log(-log(p2))
-qqplot(m2,ginv2,xlab="Quantil empírico",ylab="Quantil da Gumbel",main="qqplot")
-grid()
-
-rm(tau2,ginv2,p2)
-## R MLE - GEV
-fitmv2 = gevFit(m2, type ="mle")
-fitmv2
 par(mfrow = c(2, 2))
-summary(fitmv2)
-## R PWM - GEV
-fitpwm2 = gevFit(m2, type ="pwm")
-fitpwm2
-par(mfrow = c(2, 2))
-summary(fitpwm2)
+summary(SSG_gevfit1)
+summary(SSG_gevfit2)
+summary(APL_gevfit1)
+summary(APL_gevfit2)
 
-xis21 <- fitmv2@fit[["par.ests"]][["xi"]]
-mus21 <- fitmv2@fit[["par.ests"]][["mu"]]
-betas21 <- fitmv2@fit[["par.ests"]][["beta"]]
-xis22 <- fitpwm2@fit[["par.ests"]][["xi"]]
-mus22 <- fitpwm2@fit[["par.ests"]][["mu"]]
-betas22 <- fitpwm2@fit[["par.ests"]][["beta"]]
 
-rm(fitmv2,fitpwm2)
-
-hist(m2,prob=T,ylim=c(0,60),main='',cex.axis=1.5, cex.lab=1.5, cex=1.5, font.axis=2,lwd=2)
-curve(dgev(x, xi = xis21 , mu = mus21, beta = betas21),col='blue', lwd=2, add=TRUE)
-curve(dgev(x, xi = xis22, mu = mus22 , beta = betas22),col='green',lwd=2,add=TRUE)
-legend('topright',legend=c('MLE','PWM'),col=c('blue','green'),lwd=2)
-
-rm(xis21,mus21,betas21,xis22,mus22,betas22)
 par(mfrow=c(1,1))
-fit2 <- fevd(m2,type="GEV")
-fit2 #positive shape estimate but fairly large standard error
-plot(fit2) #The fit looks reasonable
-ci(fit2,type="parameter") #As expected the 95% confidence interval includes negative values
-return.level(fit2,do.ci=T)
+SSG_fit <- fevd(SSG_ts$Retorno, type="GEV")
+pars <- data.frame("Locacao" = SSG_fit$results$par['location'],
+           "Escala" = SSG_fit$results$par['scale'],
+           "Forma" = SSG_fit$results$par['shape'])
+row.names(pars) <- ""
+kbl(pars, booktabs = T,
+    caption = "Parâmetros estimados para o ajuste de uma distribuição GEV para dados SSG15.") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
-rm(m2,fit2)
+
+APL_fit <- fevd(APL_ts$Retorno, type="GEV")
+pars <- data.frame("Locacao" = APL_fit$results$par['location'],
+                   "Escala" = APL_fit$results$par['scale'],
+                   "Forma" = APL_fit$results$par['shape'])
+row.names(pars) <- ""
+kbl(pars, booktabs = T,
+    caption = "Parâmetros estimados para o ajuste de uma distribuição GEV para dados APL57.") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
+
+
+SSG_fit$call <- ""
+plot(SSG_fit)
+
+APL_fit$call <- ""
+plot(APL_fit)
+
+
+ci(SSG_fit,type="parameter") #As expected the 95% confidence interval includes negative values
+
+years <- c(2,5,10,20)
+Retorno(SSG_fit, years) %>%
+  kbl(booktabs = T, caption="Intervalos de confiança para os retornos esperados da SSG15.") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
+
+Retorno(APL_fit, years) %>%
+  kbl(booktabs = T, caption="Intervalos de confiança para os retornos esperados da APL57.") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)

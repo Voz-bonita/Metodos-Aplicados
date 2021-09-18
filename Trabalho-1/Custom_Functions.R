@@ -143,3 +143,15 @@ Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05) {
   names(ans) <- c("n", "Teste", "Serie")
   return(ans)
 }
+
+
+Retorno <- function (fit, years) {
+  n <- length(years)
+  estimativa <- return.level(fit, years, do.ci = TRUE)[1:(n*3)]
+
+  retorno_df <- data.frame(matrix(estimativa, ncol = 3, nrow = n)) %>%
+    mutate(Anos = paste(as.character(years), "Anos", sep = " "), .before = X1) %>%
+    rename_all( ~c("Tempo", "IC 95% inferior", "Estimativa", "IC 95% superior"))
+
+  return(retorno_df)
+}
