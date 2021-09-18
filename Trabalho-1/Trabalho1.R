@@ -64,16 +64,20 @@ Serie(APPLE, col_x = "Date", col_y = "Retorno")
 
 
 
-#### SAMSUNG ####
 Hist_Fit(data = SAMSUNG, values = 'Retorno')
+Hist_Fit(data = APPLE, values = 'Retorno')
 
-ssg_stF1 <- stableFit(SSG_ret, "q", doplot = TRUE)
-ssg_stF2 <- stableFit(SSG_ret, "mle", doplot = TRUE)
+SSG_stF1 <- stableFit(SSG_ret, "q", doplot = TRUE)
+APL_stF1 <- stableFit(APL_ret, "q", doplot = TRUE)
+# SSG_stF2 <- stableFit(SSG_ret, "mle", doplot = TRUE)
+# APL_stF2 <- stableFit(APL_ret, "mle", doplot = TRUE)
 
-alpha_params <- c(ssg_stF1@fit[["estimate"]][["alpha"]], ssg_stF1@fit[["estimate"]][["beta"]],
-                  ssg_stF1@fit[["estimate"]][["gamma"]], ssg_stF1@fit[["estimate"]][["delta"]])
-names(alpha_params) <- names(ssg_stF1@fit[["estimate"]])
+alpha_params <- SSG_stF1@fit[["estimate"]]
+Hist_Fit(data = SAMSUNG, values = 'Retorno',
+         fits = c('gaussian', 'stable'), fits_param = list('stable' = alpha_params))
 
+
+alpha_params <- APL_stF1@fit[["estimate"]]
 Hist_Fit(data = SAMSUNG, values = 'Retorno',
          fits = c('gaussian', 'stable'), fits_param = list('stable' = alpha_params))
 
