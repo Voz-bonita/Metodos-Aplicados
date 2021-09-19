@@ -72,22 +72,34 @@ APL_stF1 <- stableFit(APL_ret, "q", doplot = TRUE)
 # SSG_stF2 <- stableFit(SSG_ret, "mle", doplot = TRUE)
 # APL_stF2 <- stableFit(APL_ret, "mle", doplot = TRUE)
 
-alpha_params <- SSG_stF1@fit[["estimate"]]
+SSG_alpha_params <- SSG_stF1@fit[["estimate"]]
 Hist_Fit(data = SAMSUNG, values = 'Retorno',
-         fits = c('gaussian', 'stable'), fits_param = list('stable' = alpha_params))
+         fits = c('gaussian', 'stable'), fits_param = list('stable' = SSG_alpha_params))
 
-
-alpha_params <- APL_stF1@fit[["estimate"]]
-Hist_Fit(data = SAMSUNG, values = 'Retorno',
-         fits = c('gaussian', 'stable'), fits_param = list('stable' = alpha_params))
+APL_alpha_params <- APL_stF1@fit[["estimate"]]
+Hist_Fit(data = APPLE, values = 'Retorno',
+         fits = c('gaussian', 'stable'), fits_param = list('stable' = APL_alpha_params))
 
 ### VaR
 p <- c(0.95, 0.99, 0.999)
 ## Historico, Normal, Alfa-Estavel (respectivamente)
-map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "historical"))
-map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "gaussian"))
-map_dbl(p, qstable, alpha=alpha_params['alpha'], beta=alpha_params['beta'],
-                    gamma=alpha_params['gamma'], delta=alpha_params['delta'])
+data.frame(
+  "Confianca" = paste0(p*100,"%"),
+  "VaR Historico" = map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "historical")),
+  "VaR Gaussiano" = map_dbl(p, ~PerformanceAnalytics::VaR(SSG_ret, p=.x, method = "gaussian")),
+  "Var Alfa-Estavel" = map_dbl(p, qstable, alpha=SSG_alpha_params['alpha'], beta=SSG_alpha_params['beta'],
+                               gamma=SSG_alpha_params['gamma'], delta=SSG_alpha_params['delta'])) %>%
+  kbl(booktabs = T, caption = "\\label{tab:ssgvar3}VaR (Value at Risk) para os log-retornos diários da Samsung") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
+
+data.frame(
+  "Confianca" = paste0(p*100,"%"),
+  "VaR Historico" = map_dbl(p, ~PerformanceAnalytics::VaR(APL_ret, p=.x, method = "historical")),
+  "VaR Gaussiano" = map_dbl(p, ~PerformanceAnalytics::VaR(APL_ret, p=.x, method = "gaussian")),
+  "Var Alfa-Estavel" = map_dbl(p, qstable, alpha=APL_alpha_params['alpha'], beta=APL_alpha_params['beta'],
+                               gamma=APL_alpha_params['gamma'], delta=APL_alpha_params['delta'])) %>%
+  kbl(booktabs = T, caption = "\\label{tab:aplvar3}VaR (Value at Risk) para os log-retornos diários da Samsung") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
 Bmax <- Bloco_maximo(data = SAMSUNG, values = "Retorno")
 SSG_n <- Bmax$n
