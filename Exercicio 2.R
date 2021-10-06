@@ -1,30 +1,30 @@
 pacman::p_load(ggplot2, latex2exp, reshape2, dplyr, ggpubr)
 
 ## FDA fornecida
-pgev <- function(x, mean, sd, qsi) {
+pgev <- function(x, mu, sigma, qsi) {
   if (qsi != 0) {
-    return( exp(-(1 + qsi*(x-mean)/sd)^(-1/qsi)) )
+    return( exp(-(1 + qsi*(x-mu)/sigma)^(-1/qsi)) )
   } else {
-    return( exp(-exp(- (x-mean)/sd)) )
+    return( exp(-exp(- (x-mu)/sigma)) )
   }
 }
 
 ## Inversa da FDA (Quantil)
-qgev <- function(q, mean, sd, qsi) {
+qgev <- function(q, mu, sigma, qsi) {
   if (qsi != 0) {
-    return(mean - (sd/qsi) * ( 1 - (-log(q))^(-qsi)) )
+    return(mu - (sigma/qsi) * ( 1 - (-log(q))^(-qsi)) )
   } else {
-    return(mean - sd*log(-log(q))  )
+    return(mu - sigma*log(-log(q))  )
   }
 }
 
 ## Derivada da FDA (Densidade)
-dgev <- function(x, mean, sd, qsi) {
+dgev <- function(x, mu, sigma, qsi) {
   if (qsi != 0) {
-    return ( exp(-(1 + qsi*(x-mean)/sd)^(-1/qsi)) *
-               (1/qsi*(1 + qsi*(x-mean)/sd)^(-1/qsi-1) ) * qsi/sd )
+    return ( exp(-(1 + qsi*(x-mu)/sigma)^(-1/qsi)) *
+               (1/qsi*(1 + qsi*(x-mu)/sigma)^(-1/qsi-1) ) * qsi/sigma )
   } else {
-    return ( exp(-exp(- (x-mean)/sd)) * (1/sd)*(exp(- (x-mean)/sd)) )
+    return ( exp(-exp(- (x-mu)/sigma)) * (1/sigma)*(exp(- (x-mu)/sigma)) )
   }
 }
 
@@ -38,9 +38,9 @@ m <- 0
 
 y <- runif(100, 0, 1)
 ## Note que a funcao foi manualmente definida anteriormente
-amostra_g0 <- qgev(q = y, mean = m, sd = s, qsi = qsi_g0)
-amostra_l0 <- qgev(q = y, mean = m, sd = s, qsi = qsi_l0)
-amostra_e0 <- qgev(q = y, mean = m, sd = s, qsi = qsi_e0)
+amostra_g0 <- qgev(q = y, mu = m, sigma = s, qsi = qsi_g0)
+amostra_l0 <- qgev(q = y, mu = m, sigma = s, qsi = qsi_l0)
+amostra_e0 <- qgev(q = y, mu = m, sigma = s, qsi = qsi_e0)
 
 amostra <- data.frame(
   "index" = seq(1,100),
@@ -53,9 +53,9 @@ amostra <- data.frame(
 
 ## Valores reais para estudo
 x.true <- seq(-2,8, 0.001)
-y.trueg0 <- dgev(x.true, mean = m, sd = s, qsi = qsi_g0)
-y.truel0 <- dgev(x.true, mean = m, sd = s, qsi = qsi_l0)
-y.truee0 <- dgev(x.true, mean = m, sd = s, qsi = qsi_e0)
+y.trueg0 <- dgev(x.true, mu = m, sigma = s, qsi = qsi_g0)
+y.truel0 <- dgev(x.true, mu = m, sigma = s, qsi = qsi_l0)
+y.truee0 <- dgev(x.true, mu = m, sigma = s, qsi = qsi_e0)
 
 
 uni_plot <- function(amostra, x.true, y.true, escala_inf, escala_sup) {
