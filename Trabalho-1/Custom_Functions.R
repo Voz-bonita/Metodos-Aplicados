@@ -90,7 +90,7 @@ Hist_Fit <- function (data, values, fits=c(), fits_param=c(), bins=30) {
 }
 
 
-Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05, force=c(FALSE, 30)) {
+Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05, force=0) {
   section <- function (n, data, values) {
     tau <- floor(nrow(data) / n)
     maximos <- data.frame(matrix(nrow=tau, ncol = length(data)))
@@ -135,9 +135,12 @@ Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05, force=c(FALS
     n <- dplyr::filter(ans_tab, P.valor == max(ans_tab$P.valor) & Tamanho > 7)[["Tamanho"]]
     message("Nao foi encontrado nenhum p-valor mais\nsignificativo que o nivel de confiança")
   }
-  if (force[1]){
-    Serie_temp <- section(force[2], data = data, values = values)
-    ans <- list(force[2], ans_tab, Serie_temp)
+
+  # Para forcar um certo tamanho de bloco e, entre outras coisas, manter os bancos com mesmo tamanho
+  if (force > 0){
+    force <- floor(force)
+    Serie_temp <- section(force, data = data, values = values)
+    ans <- list(force, ans_tab, Serie_temp)
   } else {
     Serie_temp <- section(n, data = data, values = values)
     ans <- list(n, ans_tab, Serie_temp)

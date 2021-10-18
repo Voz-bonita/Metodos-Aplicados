@@ -2,7 +2,8 @@ pacman::p_load('tidyverse','lubridate','copula',
                'fBasics','StableEstim','stabledist',
                'DT','kableExtra','PerformanceAnalytics',
                'extRemes', 'ismev', 'evmix', 'evd', 'extremis',
-               'VGAM', 'fExtremes', 'dplyr', 'ggplot2', 'ggpubr')
+               'VGAM', 'fExtremes', 'dplyr', 'ggplot2', 'ggpubr',
+               'bgumbel')
 
 
 ano_inicio <- as.Date("2017-06-30", format = "%Y-%m-%d")
@@ -133,7 +134,7 @@ SSG_tab <- Bmax$Teste %>%
 SSG_ts <- Bmax$Serie %>%
   dplyr::select(c("Date", "Retorno"))
 
-Bmax <- Bloco_maximo(data = APPLE, values = "Retorno", force = c(TRUE, 30))
+Bmax <- Bloco_maximo(data = APPLE, values = "Retorno", force = 15)
 APL_n <- Bmax$n
 APL_tab <- Bmax$Teste %>%
   summarise(Tamanho = Tamanho,
