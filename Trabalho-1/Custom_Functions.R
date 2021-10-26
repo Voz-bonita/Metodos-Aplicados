@@ -150,13 +150,18 @@ Bloco_maximo <- function (data, values, x_axis="Date", conf = 0.05, force=0) {
 }
 
 
-Retorno <- function (fit, years) {
+Retorno <- function (fit, years, investimento = 1000, nome = "Data") {
   n <- length(years)
   estimativa <- return.level(fit, years, do.ci = TRUE)[1:(n*3)]
 
   retorno_df <- data.frame(matrix(estimativa, ncol = 3, nrow = n)) %>%
-    mutate(Anos = paste(as.character(years), "Anos", sep = " "), .before = X1) %>%
-    rename_all( ~c("Tempo", "IC 95% inferior", "Estimativa", "IC 95% superior"))
+    dplyr::select(X2) %>%
+    map_df(~round(exp(.x)*investimento), 0) %>%
+    map_df(~paste0("$", .x))
 
-  return(retorno_df)
+  confianca_df <- data.frame(matrix(ncol = n+1, nrow = 1)) %>%
+    rename_all(~c("Fonte", paste0(round((1-1/years)*100, 2), "%")))
+  confianca_df[1,] <- c(nome, retorno_df$X2)
+
+  return(confianca_df)
 }
