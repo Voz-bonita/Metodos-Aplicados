@@ -165,3 +165,33 @@ Retorno <- function (fit, years, investimento = 1000, nome = "Data") {
 
   return(confianca_df)
 }
+
+
+### GEV -----------------------------------------------------------------------------
+## FDA fornecida
+pgev <- function(x, mu, sigma, xi) {
+  if (xi != 0) {
+    return( exp(-(1 + xi*(x-mu)/sigma)^(-1/xi)) )
+  } else {
+    return( exp(-exp(- (x-mu)/sigma)) )
+  }
+}
+
+## Inversa da FDA (Quantil)
+qgev <- function(q, mu, sigma, xi) {
+  if (xi != 0) {
+    return(mu - (sigma/xi) * ( 1 - (-log(q))^(-xi)) )
+  } else {
+    return(mu - sigma*log(-log(q))  )
+  }
+}
+
+## Derivada da FDA (Densidade)
+dgev <- function(x, mu, sigma, xi) {
+  if (xi != 0) {
+    return ( exp(-(1 + xi*(x-mu)/sigma)^(-1/xi)) *
+               (1/xi*(1 + xi*(x-mu)/sigma)^(-1/xi-1) ) * xi/sigma )
+  } else {
+    return ( exp(-exp(- (x-mu)/sigma)) * (1/sigma)*(exp(- (x-mu)/sigma)) )
+  }
+}
