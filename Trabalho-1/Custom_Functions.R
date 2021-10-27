@@ -195,3 +195,16 @@ dgev <- function(x, mu, sigma, xi) {
     return ( exp(-exp(- (x-mu)/sigma)) * (1/sigma)*(exp(- (x-mu)/sigma)) )
   }
 }
+
+
+### Copula -----------------------------------------------------------------------------
+gen_gumbel <- function (theta, alpha) {
+  vphi <- (-log(alpha))^(theta)
+  return(vphi)
+}
+inv_gen_gumbel <- function (theta, alpha) {
+  generator <- gen(theta, alpha)
+  t <- S * generator
+  inv <- exp(-t^(1/theta))
+  return(inv)
+}
