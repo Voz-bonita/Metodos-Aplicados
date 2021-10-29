@@ -106,12 +106,8 @@ lam.true <- lambda(cc)
 sample_SSG <- sample[,1]
 sample_APL <- sample[,2]
 
-rrrgev <- function (sample, mu, sigma, xi) {
-  mu + sigma*( ((-log(sample))^(-xi) - 1 )/ xi )
-}
-
-x <- do.call(rrrgev, c(list("sample" = sample_SSG), SSG_par))
-y <- do.call(rrrgev, c(list("sample" = sample_APL), APL_par))
+x <- do.call(qgev, c(list("q" = sample_SSG), SSG_par))
+y <- do.call(qgev, c(list("q" = sample_APL), APL_par))
 
 
 plot(SSG, APL, pch = "../Trabalho-1 ", cex = 5 , col="black", xlab="Samsung" , ylab="Apple" )
