@@ -57,15 +57,16 @@ fit.fr <- fitCopula(frank,udat, start=a.0)
 
 # AIC e BIC
 # 1 parametro livre para AIC e BIC (theta)
-n <- nrow(udat)*2
-aicCl <- -2*fit.cl@loglik+2
-bicCl <- -2*fit.cl@loglik+log(n)
+n <- nrow(udat)
+V <- 1
+aicCl <- -2*fit.cl@loglik + 2*V
+bicCl <- -2*fit.cl@loglik + V*log(n)
 
-aicGu <- -2*fit.gu@loglik+2
-bicGu <- -2*fit.gu@loglik+log(n)
+aicGu <- -2*fit.gu@loglik + 2*V
+bicGu <- -2*fit.gu@loglik + V*log(n)
 
-aicFr <- -2*fit.fr@loglik+2
-bicFr <- -2*fit.fr@loglik+log(n)
+aicFr <- -2*fit.fr@loglik + 2*V
+bicFr <- -2*fit.fr@loglik + V*log(n)
 
 aic <- c(aicCl, aicGu, aicFr)
 bic <- c(bicCl, bicGu, bicFr)
