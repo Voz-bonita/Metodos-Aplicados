@@ -203,7 +203,7 @@ gen_gumbel <- function (theta, alpha) {
   return(vphi)
 }
 inv_gen_gumbel <- function (theta, alpha) {
-  generator <- gen(theta, alpha)
+  generator <- gen_gumbel(theta, alpha)
   t <- S * generator
   inv <- exp(-t^(1/theta))
   return(inv)
