@@ -79,8 +79,10 @@ waic <- round(exp(-1/2 * daic) / sum( exp(-1/2 * daic) ) * 100, 2)
 wbic <- round(exp(-1/2 * dbic) / sum( exp(-1/2 * dbic) ) * 100, 2)
 
 modelos <- c("Clayton", "Gumbel", "Frank")
+pars <- c(fit.cl@copula@parameters, fit.gu@copula@parameters, fit.fr@copula@parameters)
 copula.choose <- tibble(
   "Copula" = modelos,
+  "Parametros" = pars,
   "$AIC$" = aic,
   "$\\text{w}(AIC)$" = paste0(waic, "\\%"),
   "$BIC$" = bic,
