@@ -1,4 +1,4 @@
-### Arquivo contendo todas as funções customizadas utilizadas no trabalho 1
+### Arquivo contendo todas as funções customizadas utilizadas nos trabalhos 1 e 2
 pacman::p_load('dplyr', 'purrr', 'ggplot2', 'stringr', 'stabledist', 'fExtremes', 'RColorBrewer')
 
 tab_exp <- function (arr, decimals=4) {
@@ -202,9 +202,7 @@ gen_gumbel <- function (theta, alpha) {
   vphi <- (-log(alpha))^(theta)
   return(vphi)
 }
-inv_gen_gumbel <- function (theta, alpha) {
-  generator <- gen_gumbel(theta, alpha)
-  t <- S * generator
+inv_gen_gumbel <- function (theta, t) {
   inv <- exp(-t^(1/theta))
   return(inv)
 }

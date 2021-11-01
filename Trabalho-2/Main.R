@@ -1,5 +1,4 @@
-pacman::p_load("ggplot2", "fExtremes", "extRemes", "dplyr", "purrr", "knitr", "kableExtra", "copula",
-               "xtable")
+pacman::p_load("ggplot2", "fExtremes", "extRemes", "dplyr", "purrr", "knitr", "kableExtra", "copula", "xtable")
 source("Trabalho-1/Custom_Functions.R")
 
 
@@ -45,9 +44,9 @@ udat<- cbind(
 )
 
 
-clayton<- claytonCopula(dim=2)
-gumbel<- gumbelCopula(dim=2)
-frank<- frankCopula(dim=2)
+clayton <- claytonCopula(dim=2)
+gumbel <- gumbelCopula(dim=2)
+frank <- frankCopula(dim=2)
 
 
 fit.cl <- fitCopula(clayton, udat, start=a.0)
@@ -124,20 +123,17 @@ ggplot() +
 
 
 
-alpha <- c(0.95, 0.975, 0.99)    #    alpha%
-theta <- fit.gu@estimate    #    valor estimado do par�metro da c�pula
+alpha <- c(0.95, 0.975, 0.99)
+theta <- fit.gu@estimate
 VaR.b <- data.frame("Confianca" =  paste0(alpha*100, "\\%"),
                     "APL15" = NA,
                     "SSG15" = NA)
-#Gerar amostra de tamanho n de uma v�. S~Beta(1,1)=U[0,1]
 
 set.seed(2021)
 S <- runif(50, min=0, max=1 )
 
-
-
-
-inversas <- map(alpha, ~inv_gen_gumbel(theta, .x))
+generator <- gen_gumbel(theta, alpha)
+inversas <- map(generator, ~inv_gen_gumbel(theta, S*.x))
 estimativas_SSG <- map_dbl(inversas, ~mean( do.call(qgev, c(list("q" = .x), SSG_par))) )
 estimativas_APL <- map_dbl(inversas, ~mean( do.call(qgev, c(list("q" = .x), APL_par))) )
 
@@ -148,5 +144,8 @@ kbl(VaR.b, booktabs = T, caption = "\\label{tab:VaRb}VaR bivariado para ações 
   kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
 
 investimento <- 1000
-VaR.b$SSG15 <- round(exp(estimativas_SSG)*investimento, 2)
-VaR.b$APL15 <- round(exp(estimativas_APL)*investimento, 2)
+VaR.b$SSG15 <- paste0('$', round(exp(estimativas_SSG)*investimento, 2))
+VaR.b$APL15 <- paste0('$', round(exp(estimativas_APL)*investimento, 2))
+
+kbl(VaR.b, booktabs = T, caption = "\\label{tab:VaRbRET}Retorno máximo, dentro de um período de 15 dias, para para um investimento de \\$1000 em ações da SSG15 e APL15.") %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F)
